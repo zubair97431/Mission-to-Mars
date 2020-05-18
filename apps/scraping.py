@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+    #!/usr/bin/env python
 # coding: utf-8
 
 # Import Splinter and BeautifulSoup
@@ -8,11 +8,12 @@ import pandas as pd
 import datetime as dt
 import traceback
 
+
 def scrape_all():
    # Initiate headless driver for deployment
 # Set the executable path and initialize the chrome browser in splinter
     executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
-    browser = Browser("chrome", **executable_path)
+    browser = Browser('chrome', **executable_path)
     news_title, news_paragraph = mars_news(browser)
 
     # Run all scraping functions and store results in dictionary
@@ -21,15 +22,17 @@ def scrape_all():
       "news_paragraph": news_paragraph,
       "featured_image": featured_image(browser),
       "facts": mars_facts(),
-      "last_modified": dt.datetime.now()
+      "last_modified": dt.datetime.now(), 
+      "hemispheres": mars_data()
     }
-    
+
+   
     browser.quit()
     return data
 
 ## FIRST SCRAPE
 def mars_news(browser):
-    # Visit the mars nasa news site
+ # Visit the mars nasa news site
     url = 'https://mars.nasa.gov/news/'
     browser.visit(url)
 
@@ -99,8 +102,40 @@ def mars_facts():
     traceback.print_exc()    
     return df.to_html()
 
-    #browser.quit()
+#browser.quit()
+
+
+
+def mars_data() : 
+    executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
+    browser = Browser('chrome', **executable_path)
+
+    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(url)
+    
+
+    # Parse the HTML
+    html = browser.html
+    soup = BeautifulSoup(html, 'html.parser')
+
+    Urls = ['https://astrogeology.usgs.gov/search/map/Mars/Viking/cerberus_enhanced', 'https://astrogeology.usgs.gov/search/map/Mars/Viking/schiaparelli_enhanced', 'https://astrogeology.usgs.gov/search/map/Mars/Viking/syrtis_major_enhanced', 'https://astrogeology.usgs.gov/search/map/Mars/Viking/valles_marineris_enhanced'] 
+
+    for Url in Urls: 
+        browser.visit(Url)
+        # Parse the HTML
+        html = browser.html
+        soup = BeautifulSoup(html, 'html.parser')
+        title = soup.find('h2').text
+        #Find the relative image
+        img_url_rel = soup.select_one('ul li a').get('href')
+        print(img_url_rel, title)
+
+    mars_dict = [{'title': 'Cerberus Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/cerberus_enhanced.tif/full.jpg'}, {'title': 'Schiaparelli Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/schiaparelli_enhanced.tif/full.jpg'}, {'title' :'Syrtis Major Hemisphere Enhanced','img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/syrtis_major_enhanced.tif/full.jpg'}, {'title' :'Valles Marineris Hemisphere Enhanced', 'img_url': 'https://astropedia.astrogeology.usgs.gov/download/Mars/Viking/valles_marineris_enhanced.tif/full.jpg'}]
+    mars_dict
+    
+    return mars_dict
 
 if __name__ == "__main__":
     # If running as script, print scraped data
     print(scrape_all())
+
